@@ -40,8 +40,6 @@ def remove(connection):
 while True:
 	conn, addr = server.accept()
 	list_of_clients.append(conn)
-	data = conn.recv(2048).decode()
-	print(data.split(" ")[0] + ' connected')
 	threading.Thread(target=clientthread, args=(conn, addr)).start()
 
 conn.close()
