@@ -11,9 +11,6 @@ server.bind((ip_address, port))
 server.listen(100)
 list_of_clients = []
 
-BUFFER_SIZE = 2048
-sep = "|"
-
 def clientthread(conn, addr):
 	while True:
 		try:

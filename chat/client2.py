@@ -7,7 +7,7 @@ from ftplib import FTP
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.connect(('127.0.0.1', 8081))
 
-name = "asdasd"
+name = "client2"
 
 def send_msg(sock):
 	while True:
