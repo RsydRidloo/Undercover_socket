@@ -1,37 +1,56 @@
 from tkinter import *
 from tkinter import scrolledtext
+import socket
+import select
+import sys
+from threading import Thread
+from ftplib import FTP
 
-window = Tk()
+class GUI:
+    server = None
+    latest_chat = None
 
-window.title("Undercover")
-# window.geometry('350x400')
-# window.resizable(0,0)
+    def __init__(self, master):
+        self.root = master
+        # self.init_socket()
+        self.init_gui()
 
-title = Label(window, text="Undercover", font=("Arial", 30), justify='center')
-title.pack(anchor='n', pady=(10,20))
+    def init_socket(self):
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.connect(('127.0.0.1', 8081))
 
-def retrieve_input():
-    inputValue=textBox.get("1.0","end-1c")
-    print(inputValue)
+    def init_gui(self):
+        self.root.title("Undercover")
+        self.root.resizable(0, 0)
+        self.title_game()
+        self.username_player()
+        self.view_chat_box()
+        self.send_chat_box()
 
-textBox=Text(window, height=1, width=40)
-textBox.pack(side='top', anchor='nw', padx=5)
-buttonCommit=Button(window, height=1, width=10, text="Main", justify=LEFT,
-                    command=lambda: retrieve_input())
-buttonCommit.pack(side='top', anchor='nw', pady=(0,7), padx=5)
+    def title_game(self):
+        frame = Frame()
+        Label(frame, text="Undercover", font=("Arial", 30), justify='center').pack()
+        frame.pack()
 
-lbl = Label(window, text="Chat box", font=("Arial", 15), justify='left')
-lbl.pack(anchor='nw', pady=5, padx=5)
+    def username_player(self):
+        frame = Frame()
+        Text(frame, height=1, width=40).pack(side='top', anchor='nw', padx=5)
+        Button(frame, height=1, width=10, text="Main", justify=LEFT).pack(side='top', anchor='nw', pady=(0,7), padx=5)
+        frame.pack()
 
-txt = scrolledtext.ScrolledText(window,width=40,height=10)
-txt.pack(anchor='nw', padx=5)
+    def view_chat_box(self):
+        frame = Frame()
+        Label(frame, text="Chat box", font=("Arial", 15), justify='left').pack(anchor='nw', pady=5, padx=5)
+        self.latest_chat = scrolledtext.ScrolledText(frame,width=40,height=10).pack(anchor='nw', padx=5)
+        frame.pack()
 
-lbl1 = Label(window, text="Masukan pesan :", font=("Arial", 12), justify='left')
-lbl1.pack(anchor='nw' , pady=(10,2), padx=5)
+    def send_chat_box(self):
+        frame = Frame()
+        Label(frame, text="Masukan pesan :", font=("Arial", 12), justify='left').pack(anchor='nw' , pady=(10,2), padx=5)
+        Text(frame, height=5, width=40).pack(anchor='nw', padx=5)
+        frame.pack(pady=(0,10))
 
-fieldBox=Text(window, height=5, width=40)
-fieldBox.pack(anchor='nw', pady=(0,10), padx=5)
-# btn = Button(window, text='Stop', command=window.destroy)
-# btn.grid(column=0,row=3)
-
-window.mainloop()
+if __name__ == '__main__':
+    root = Tk()
+    gui = GUI(root)
+    root.mainloop()
