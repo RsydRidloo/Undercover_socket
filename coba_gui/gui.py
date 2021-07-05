@@ -13,8 +13,12 @@ class GUI:
         self.root = master
         self.player_name = ["foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz"]
         self.clue_player = ["foo", "bar", "baz"]
+        self.chat_transcript = None
+        self.text_player = None
+        self.enter_text_widget = None
         # self.init_socket()
         self.init_gui()
+        # self.thread_gui()
 
     def init_socket(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,15 +27,49 @@ class GUI:
     def init_gui(self):
         self.root.title("Undercover")
         self.root.resizable(0, 0)
-        self.root.geometry('700x450')
+        self.root.geometry('700x550')
         self.role_player = "undertaker"
         self.title_game()
         self.username_player()
         self.view_role()
         self.view_chat_box()
         self.send_chat_box()
-        self.view_clue_box()
-        self.view_voting()
+        # self.view_clue_box()
+        # self.view_voting()
+
+    def thread_gui(self):
+        Thread(target=self.send_msg, args=(self.server,)).start()
+        Thread(target=self.recv_msg, args=(self.server,)).start()
+
+    def send_msg(self):
+	    # self.send(name.encode())
+	    # while True:
+		    # data = input()
+		    # self.send((name + ' ' + data).encode())
+        sender_name = self.player_name.get().strip() + ": "
+        data = self.enter_text_widget.get(1.0, 'end').strip()
+        message = (sender_name + data).encode()
+
+    def recv_msg(self):
+	    while True:
+		    data = self.recv(2048).decode()
+		    sys.stdout.write(data + '\n')
+
+    def on_join(self):
+        if len(self.text_player.get()) == 0:
+            return
+        self.text_player.config(state='disabled')
+        self.server.send(self.text_player.get()).encode()
+
+    def on_enter_chat(self, event):
+        # if len(self.text_player.get()) == 0:
+        #     return
+        # self.send_msg()
+        # print(self.text_player)
+        self.clear_text()
+        
+    def clear_text(self):
+        self.enter_text_widget.delete(1.0, 'end')
 
     def title_game(self):
         frame = Frame()
@@ -47,14 +85,23 @@ class GUI:
     def view_chat_box(self):
         frame = Frame()
         Label(frame, text="Chat box", font=("Arial", 15), justify='left').pack(anchor='w',pady=5, padx=5)
-        self.latest_chat = scrolledtext.ScrolledText(frame,width=40,height=10).pack(padx=5)
+        self.chat_transcript = Text(frame, width=40, height=10, font=("Serif", 12))
+        scrollbar = Scrollbar(frame, command=self.chat_transcript.yview, orient=VERTICAL)
+        self.chat_transcript.config(yscrollcommand=scrollbar.set)
+        self.chat_transcript.bind('<KeyPress>', lambda e: 'break')
+        self.chat_transcript.pack(side='left', padx=10)
+        scrollbar.pack(side='right', fill='y')
+        # self.latest_chat = scrolledtext.ScrolledText(frame,width=40,height=10).pack(padx=5)
         frame.place(x=10, y=120)
 
     def send_chat_box(self):
         frame = Frame()
         Label(frame, text="Masukan pesan :", font=("Arial", 12), justify='left').pack(anchor='nw' , pady=(10,2), padx=5)
-        Text(frame, height=5, width=40).pack(anchor='nw', padx=5)
-        frame.place(x=10, y=300)
+        # Text(frame, height=5, width=40).pack(anchor='nw', padx=5)
+        self.enter_text_widget = Text(frame, width=60, height=3, font=("Serif", 12))
+        self.enter_text_widget.pack(side='left', pady=15)
+        self.enter_text_widget.bind('<Return>', self.on_enter_chat)
+        frame.place(x=10, y=350)
 
     def view_voting(self):
         frame = Frame(root, highlightbackground="black", highlightthickness=6, bd= 0)
@@ -75,7 +122,6 @@ class GUI:
         frame = Frame()
         Label(frame, text="Role : " + self.role_player, font=("Arial", 12), justify='left').pack()
         frame.place(x=550, y=10)
-
 
     def view_clue_box(self):
         frame = Frame()
