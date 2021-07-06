@@ -7,7 +7,6 @@ from threading import Thread
 
 class GUI:
     server = None
-    latest_chat = None
 
     def __init__(self, master):
         self.root = master
@@ -16,9 +15,10 @@ class GUI:
         self.chat_transcript = None
         self.text_player = None
         self.enter_text_widget = None
-        # self.init_socket()
+        self.join_button = None
+        self.init_socket()
         self.init_gui()
-        # self.thread_gui()
+        self.thread_gui()
 
     def init_socket(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -42,30 +42,36 @@ class GUI:
         Thread(target=self.recv_msg, args=(self.server,)).start()
 
     def send_msg(self):
-	    # self.send(name.encode())
-	    # while True:
-		    # data = input()
-		    # self.send((name + ' ' + data).encode())
-        sender_name = self.player_name.get().strip() + ": "
+        sender_name = self.text_player.get()
         data = self.enter_text_widget.get(1.0, 'end').strip()
-        message = (sender_name + data).encode()
+        message = (sender_name + ' ' + data).encode()
+        to_chat_box = ('me' + ' : ' + data).encode()
+        self.chat_transcript.insert('end', to_chat_box.decode() + '\n')
+        self.chat_transcript.yview(END)
+        self.server.send(message)
+        self.enter_text_widget.delete(1.0, 'end')
+        return 'break'
 
-    def recv_msg(self):
-	    while True:
-		    data = self.recv(2048).decode()
-		    sys.stdout.write(data + '\n')
+    def recv_msg(self, so):
+        while True:
+            buffer = so.recv(2048)
+            if not buffer:
+                break
+            message = buffer.decode()
+            self.chat_transcript.insert('end', message + '\n')
+            self.chat_transcript.yview(END)
+        so.close()
 
     def on_join(self):
         if len(self.text_player.get()) == 0:
             return
         self.text_player.config(state='disabled')
-        self.server.send(self.text_player.get()).encode()
+        self.server.send(self.text_player.get().encode())
 
     def on_enter_chat(self, event):
-        # if len(self.text_player.get()) == 0:
-        #     return
-        # self.send_msg()
-        # print(self.text_player)
+        if len(self.text_player.get()) == 0:
+            return
+        self.send_msg()
         self.clear_text()
         
     def clear_text(self):
@@ -78,8 +84,9 @@ class GUI:
 
     def username_player(self):
         frame = Frame()
-        Text(frame, height=1, width=28).pack(side='left', padx=2)
-        Button(frame, height=1, width=10, text="Start", justify=LEFT).pack(side='left', padx=2)
+        self.text_player = Entry(frame, borderwidth=1, width=28)
+        self.text_player.pack(side='left', padx=2)
+        self.join_button = Button(frame, height=1, width=10, command=self.on_join, text="Start").pack(side='left', padx=2)
         frame.place(x=200, y=70)
 
     def view_chat_box(self):
@@ -91,14 +98,12 @@ class GUI:
         self.chat_transcript.bind('<KeyPress>', lambda e: 'break')
         self.chat_transcript.pack(side='left', padx=10)
         scrollbar.pack(side='right', fill='y')
-        # self.latest_chat = scrolledtext.ScrolledText(frame,width=40,height=10).pack(padx=5)
         frame.place(x=10, y=120)
 
     def send_chat_box(self):
         frame = Frame()
         Label(frame, text="Masukan pesan :", font=("Arial", 12), justify='left').pack(anchor='nw' , pady=(10,2), padx=5)
-        # Text(frame, height=5, width=40).pack(anchor='nw', padx=5)
-        self.enter_text_widget = Text(frame, width=60, height=3, font=("Serif", 12))
+        self.enter_text_widget = Text(frame, width=40, height=3, font=("Serif", 12))
         self.enter_text_widget.pack(side='left', pady=15)
         self.enter_text_widget.bind('<Return>', self.on_enter_chat)
         frame.place(x=10, y=350)
