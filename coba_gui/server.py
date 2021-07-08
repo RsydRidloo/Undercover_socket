@@ -14,9 +14,13 @@ def clientthread(conn, addr):
 		try:
 			data = conn.recv(2048).decode()
 			if data:
-				print(data.split(" ")[0] + ' : ' + data.partition(' ')[2])
-				message_to_send = data.split(" ")[0] + ' : ' + data.partition(' ')[2]
-				broadcast(message_to_send, conn)
+				if "joined" in data:
+					print(data)
+					broadcast(data, conn)
+				else:
+					print(data.split(" ")[0] + ' : ' + data.partition(' ')[2])
+					message_to_send = data.split(" ")[0] + ' : ' + data.partition(' ')[2]
+					broadcast(message_to_send, conn)
 			else:
 				remove(conn)
 		except:
@@ -38,9 +42,7 @@ def remove(connection):
 while True:
 	conn, addr = server.accept()
 	list_of_clients.append(conn)
-	data = conn.recv(2048).decode()
-	print(data.split(" ")[0] + ' connected')
-	broadcast(data.split(" ")[0] + ' joined', conn)
+	# print(addr[0] + ' connected')
 	threading.Thread(target=clientthread, args=(conn, addr)).start()
 
 conn.close()

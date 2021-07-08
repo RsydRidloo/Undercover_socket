@@ -1,5 +1,4 @@
 from tkinter import *
-from tkinter import scrolledtext
 import socket
 import select
 import sys
@@ -11,14 +10,15 @@ class GUI:
     def __init__(self, master):
         self.root = master
         self.player_name = ["foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz"]
-        self.clue_player = ["foo", "bar", "baz"]
+        self.clue_player = ["foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz"]
         self.chat_transcript = None
         self.text_player = None
         self.enter_text_widget = None
+        self.text_clue = None
         self.join_button = None
-        self.init_socket()
+        # self.init_socket()
         self.init_gui()
-        self.thread_gui()
+        # self.thread_gui()
 
     def init_socket(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,15 +30,16 @@ class GUI:
         self.root.geometry('700x550')
         self.role_player = "undertaker"
         self.title_game()
-        self.username_player()
+        self.input_username()
         self.view_role()
         self.view_chat_box()
         self.send_chat_box()
-        # self.view_clue_box()
-        # self.view_voting()
+        self.input_clue()
+        self.view_clue_box()
+        self.view_voting_box()
 
     def thread_gui(self):
-        Thread(target=self.send_msg, args=(self.server,)).start()
+        # Thread(target=self.send_msg, args=(self.server,)).start()
         Thread(target=self.recv_msg, args=(self.server,)).start()
 
     def send_msg(self):
@@ -66,7 +67,7 @@ class GUI:
         if len(self.text_player.get()) == 0:
             return
         self.text_player.config(state='disabled')
-        self.server.send(self.text_player.get().encode())
+        self.server.send((self.text_player.get() + " joined").encode())
 
     def on_enter_chat(self, event):
         if len(self.text_player.get()) == 0:
@@ -82,7 +83,7 @@ class GUI:
         Label(frame, text="Undercover", font=("Arial", 30), justify='center').pack()
         frame.place(x=250, y=0)
 
-    def username_player(self):
+    def input_username(self):
         frame = Frame()
         self.text_player = Entry(frame, borderwidth=1, width=28)
         self.text_player.pack(side='left', padx=2)
@@ -100,46 +101,56 @@ class GUI:
         scrollbar.pack(side='right', fill='y')
         frame.place(x=10, y=120)
 
-    def send_chat_box(self):
+    def view_clue_box(self):
         frame = Frame()
-        Label(frame, text="Masukan pesan :", font=("Arial", 12), justify='left').pack(anchor='nw' , pady=(10,2), padx=5)
-        self.enter_text_widget = Text(frame, width=40, height=3, font=("Serif", 12))
-        self.enter_text_widget.pack(side='left', pady=15)
-        self.enter_text_widget.bind('<Return>', self.on_enter_chat)
-        frame.place(x=10, y=350)
+        Label(frame, text="Clue Box", font=("Arial", 15), justify='left').pack(pady=5)
+        Lb = Listbox(frame, width=10,height=10)
+        Sb = Scrollbar(frame, orient="vertical")
+        for listbox in self.clue_player:
+            Lb.insert(END, listbox)
+        Lb.config(yscrollcommand=Sb.set)
+        Sb.config(command=Lb.yview)
+        Lb.bind('<KeyPress>', lambda e: 'break')
+        Lb.pack(side='left', padx=10)
+        Sb.pack(side='right', fill='y')
+        frame.place(x=420, y=120)
 
-    def view_voting(self):
-        frame = Frame(root, highlightbackground="black", highlightthickness=6, bd= 0)
-        Label(frame, text="Voting", font=("Arial", 15), justify='left').pack(pady=5)
-        text = Text(root, width=10, height=6, cursor="arrow")
-        vsb = Scrollbar(root, command=text.yview)
+    def input_clue(self):
+        frame = Frame()
+        Label(frame, text="Input Clue :", font=("Arial", 15), justify='left').pack(pady=5)
+        self.text_clue = Text(frame, width=10, height=1, font=("Serif", 12))
+        self.text_clue.pack()
+        self.enter_text_widget.bind('<Return>', self.on_enter_chat)
+        frame.place(x=550, y=120)
+
+    def view_voting_box(self):
+        frame = Frame()
+        Label(frame, text="Voting", font=("Arial", 15), justify='left').pack()
+        text = Text(frame, width=10, height=6, cursor="arrow")
+        vsb = Scrollbar(frame, command=text.yview)
         text.configure(yscrollcommand=vsb.set)
-        text.place(x=400, y=300)
-        vsb.place(x=400, y=300)
+        text.bind('<KeyPress>', lambda e: 'break')
+        text.pack(side='left', pady=15, padx=10)
+        vsb.pack(side='right', fill='y', pady=15)
         for checkBoxName in self.player_name:
             c = Checkbutton(text, text=checkBoxName)
             text.window_create("end", window=c)
             text.insert("end", "\n")
         text.configure(state="disabled")
-        frame.place(x=400, y=300)
+        frame.place(x=420, y=350)
+
+    def send_chat_box(self):
+        frame = Frame()
+        Label(frame, text="Masukan pesan :", font=("Arial", 12), justify='left').pack(anchor='nw' , pady=(10,2), padx=5)
+        self.enter_text_widget = Text(frame, width=40, height=3, font=("Serif", 12))
+        self.enter_text_widget.pack(side='left', pady=15, padx=10)
+        self.enter_text_widget.bind('<Return>', self.on_enter_chat)
+        frame.place(x=10, y=350)
 
     def view_role(self):
         frame = Frame()
         Label(frame, text="Role : " + self.role_player, font=("Arial", 12), justify='left').pack()
         frame.place(x=550, y=10)
-
-    def view_clue_box(self):
-        frame = Frame()
-        Label(frame, text="Clue Box", font=("Arial", 15), justify='left').pack(pady=5)
-        Lb = Listbox(root)
-        Lb.place(x=400, y=160)
-        Sb = Scrollbar(orient="vertical",width=200)
-        Sb.place(x=400, y=130)
-        for listbox in self.clue_player:
-            Lb.insert(END, listbox)
-        Lb.config(yscrollcommand=Sb.set)
-        Sb.config(command=Lb.yview)
-        frame.place(x=400, y=120)
 
 if __name__ == '__main__':
     root = Tk()
