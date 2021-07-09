@@ -16,9 +16,9 @@ class GUI:
         self.enter_text_widget = None
         self.text_clue = None
         self.join_button = None
-        # self.init_socket()
+        self.init_socket()
         self.init_gui()
-        # self.thread_gui()
+        self.thread_gui()
 
     def init_socket(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -133,7 +133,7 @@ class GUI:
         text.pack(side='left', pady=15, padx=10)
         vsb.pack(side='right', fill='y', pady=15)
         for checkBoxName in self.player_name:
-            c = Checkbutton(text, text=checkBoxName)
+            c = Radiobutton(text, text=checkBoxName)
             text.window_create("end", window=c)
             text.insert("end", "\n")
         text.configure(state="disabled")
