@@ -4,13 +4,16 @@ import select
 import sys
 from threading import Thread
 
+
 class GUI:
     server = None
 
     def __init__(self, master):
         self.root = master
-        self.player_name = ["foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz"]
-        self.clue_player = ["foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz","foo", "bar", "baz"]
+        self.player_name = ["foo", "bar", "baz", "foo", "bar",
+                            "baz", "foo", "bar", "baz", "foo", "bar", "baz"]
+        self.clue_player = ["foo", "bar", "baz", "foo", "bar",
+                            "baz", "foo", "bar", "baz", "foo", "bar", "baz"]
         self.chat_transcript = None
         self.text_player = None
         self.enter_text_widget = None
@@ -37,6 +40,13 @@ class GUI:
         self.input_clue()
         self.view_clue_box()
         self.view_voting_box()
+        self.start_game()
+
+    def start_game(self):
+        frame = Frame()
+        Button(frame, height=1, width=10, command=self.on_join,
+               text="Start").pack(side='left')
+        frame.place(x=10, y=70)
 
     def thread_gui(self):
         # Thread(target=self.send_msg, args=(self.server,)).start()
@@ -74,27 +84,32 @@ class GUI:
             return
         self.send_msg()
         self.clear_text()
-        
+
     def clear_text(self):
         self.enter_text_widget.delete(1.0, 'end')
 
     def title_game(self):
         frame = Frame()
-        Label(frame, text="Undercover", font=("Arial", 30), justify='center').pack()
+        Label(frame, text="Undercover", font=(
+            "Arial", 30), justify='center').pack()
         frame.place(x=250, y=0)
 
     def input_username(self):
         frame = Frame()
         self.text_player = Entry(frame, borderwidth=1, width=28)
         self.text_player.pack(side='left', padx=2)
-        self.join_button = Button(frame, height=1, width=10, command=self.on_join, text="Start").pack(side='left', padx=2)
+        self.join_button = Button(
+            frame, height=1, width=10, command=self.on_join, text="Join").pack(side='left', padx=2)
         frame.place(x=200, y=70)
 
     def view_chat_box(self):
         frame = Frame()
-        Label(frame, text="Chat box", font=("Arial", 15), justify='left').pack(anchor='w',pady=5, padx=5)
-        self.chat_transcript = Text(frame, width=40, height=10, font=("Serif", 12))
-        scrollbar = Scrollbar(frame, command=self.chat_transcript.yview, orient=VERTICAL)
+        Label(frame, text="Chat box", font=("Arial", 15),
+              justify='left').pack(anchor='w', pady=5, padx=5)
+        self.chat_transcript = Text(
+            frame, width=40, height=10, font=("Serif", 12))
+        scrollbar = Scrollbar(
+            frame, command=self.chat_transcript.yview, orient=VERTICAL)
         self.chat_transcript.config(yscrollcommand=scrollbar.set)
         self.chat_transcript.bind('<KeyPress>', lambda e: 'break')
         self.chat_transcript.pack(side='left', padx=10)
@@ -103,8 +118,9 @@ class GUI:
 
     def view_clue_box(self):
         frame = Frame()
-        Label(frame, text="Clue Box", font=("Arial", 15), justify='left').pack(pady=5)
-        Lb = Listbox(frame, width=10,height=10)
+        Label(frame, text="Clue Box", font=(
+            "Arial", 15), justify='left').pack(pady=5)
+        Lb = Listbox(frame, width=10, height=10)
         Sb = Scrollbar(frame, orient="vertical")
         for listbox in self.clue_player:
             Lb.insert(END, listbox)
@@ -117,7 +133,8 @@ class GUI:
 
     def input_clue(self):
         frame = Frame()
-        Label(frame, text="Input Clue :", font=("Arial", 15), justify='left').pack(pady=5)
+        Label(frame, text="Input Clue :", font=(
+            "Arial", 15), justify='left').pack(pady=5)
         self.text_clue = Text(frame, width=10, height=1, font=("Serif", 12))
         self.text_clue.pack()
         self.enter_text_widget.bind('<Return>', self.on_enter_chat)
@@ -141,16 +158,20 @@ class GUI:
 
     def send_chat_box(self):
         frame = Frame()
-        Label(frame, text="Masukan pesan :", font=("Arial", 12), justify='left').pack(anchor='nw' , pady=(10,2), padx=5)
-        self.enter_text_widget = Text(frame, width=40, height=3, font=("Serif", 12))
+        Label(frame, text="Masukan pesan :", font=("Arial", 12),
+              justify='left').pack(anchor='nw', pady=(10, 2), padx=5)
+        self.enter_text_widget = Text(
+            frame, width=40, height=3, font=("Serif", 12))
         self.enter_text_widget.pack(side='left', pady=15, padx=10)
         self.enter_text_widget.bind('<Return>', self.on_enter_chat)
         frame.place(x=10, y=350)
 
     def view_role(self):
         frame = Frame()
-        Label(frame, text="Role : " + self.role_player, font=("Arial", 12), justify='left').pack()
+        Label(frame, text="Role : " + self.role_player,
+              font=("Arial", 12), justify='left').pack()
         frame.place(x=550, y=10)
+
 
 if __name__ == '__main__':
     root = Tk()
