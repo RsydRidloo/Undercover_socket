@@ -21,21 +21,36 @@ def clientthread(conn, addr):
         try:
             data = conn.recv(2048).decode()
             if data:
-                if "joined" in data:
+                if data.split("/")[0] == "joined":
                     print(data)
-                    name_of_clients.append(data.split(" ")[0])
-                    role_of_clients = numpy.ones(10)
-                    role_of_clients[8:] = 0
-                    random.shuffle(role_of_clients)
-                    index = random.randint(0, 4)
-                    undercover_words[index]
-                    print(undercover_words[index])
-                    print(role_of_clients)
+                    name_of_clients.append(data.split("/")[1])
+                    data = data.split("/")[1] + " joined"
                     broadcast(data, conn)
+                elif data.split("/")[0] == "start":
+                    number_of_clients = len(name_of_clients)
+                    index = random.randint(0, 4)
+                    if number_of_clients > 5:
+                        role_of_clients = numpy.ones(number_of_clients)
+                        role_of_clients[(number_of_clients-2):] = 0
+                        random.shuffle(role_of_clients)
+                    else:
+                        role_of_clients = numpy.ones(number_of_clients)
+                        role_of_clients[(number_of_clients-1):] = 0
+                        random.shuffle(role_of_clients)
+                        print(role_of_clients)
+                    i = 0
+                    for clients in list_of_clients:
+                        if role_of_clients[i] == 1:
+                            word_to_send = "word/" + civillian_words[index]
+                        else:
+                            word_to_send = "word/" + undercover_words[index]
+                        print(word_to_send)
+                        clients.send(word_to_send.encode())
+                        i = i + 1
                 else:
-                    print(data.split(" ")[0] + ' : ' + data.partition(' ')[2])
+                    print(data.split("/")[0] + ' : ' + data.partition(' ')[2])
                     message_to_send = data.split(
-                        " ")[0] + ' : ' + data.partition(' ')[2]
+                        "/")[0] + ' : ' + data.partition('/')[2]
                     broadcast(message_to_send, conn)
             else:
                 remove(conn)

@@ -16,6 +16,7 @@ class GUI:
                             "baz", "foo", "bar", "baz", "foo", "bar", "baz"]
         self.chat_transcript = None
         self.text_player = None
+        self.word_player = StringVar()
         self.enter_text_widget = None
         self.text_clue = None
         self.join_button = None
@@ -31,10 +32,9 @@ class GUI:
         self.root.title("Undercover")
         self.root.resizable(0, 0)
         self.root.geometry('700x550')
-        self.role_player = "undertaker"
         self.title_game()
         self.input_username()
-        self.view_role()
+        
         self.view_chat_box()
         self.send_chat_box()
         self.input_clue()
@@ -44,7 +44,7 @@ class GUI:
 
     def start_game(self):
         frame = Frame()
-        Button(frame, height=1, width=10, command=self.on_join,
+        Button(frame, height=1, width=10, command=self.on_start,
                text="Start").pack(side='left')
         frame.place(x=10, y=70)
 
@@ -55,7 +55,7 @@ class GUI:
     def send_msg(self):
         sender_name = self.text_player.get()
         data = self.enter_text_widget.get(1.0, 'end').strip()
-        message = (sender_name + ' ' + data).encode()
+        message = (sender_name + '/' + data).encode()
         to_chat_box = ('me' + ' : ' + data).encode()
         self.chat_transcript.insert('end', to_chat_box.decode() + '\n')
         self.chat_transcript.yview(END)
@@ -69,7 +69,12 @@ class GUI:
             if not buffer:
                 break
             message = buffer.decode()
-            self.chat_transcript.insert('end', message + '\n')
+            if message.split("/")[0] == "word":
+                self.chat_transcript.insert('end', "kata anda adalah " + message.split("/")[1] + '\n')
+                self.word_player.set(message.split("/")[1]) 
+                self.view_word()
+            else:
+                self.chat_transcript.insert('end', message + '\n')
             self.chat_transcript.yview(END)
         so.close()
 
@@ -77,7 +82,13 @@ class GUI:
         if len(self.text_player.get()) == 0:
             return
         self.text_player.config(state='disabled')
-        self.server.send((self.text_player.get() + " joined").encode())
+        self.server.send(("joined/" + self.text_player.get()).encode())
+
+    def on_start(self):
+        if len(self.text_player.get()) == 0:
+            return
+        self.text_player.config(state='disabled')
+        self.server.send(("start/" + self.text_player.get()).encode())
 
     def on_enter_chat(self, event):
         if len(self.text_player.get()) == 0:
@@ -166,9 +177,9 @@ class GUI:
         self.enter_text_widget.bind('<Return>', self.on_enter_chat)
         frame.place(x=10, y=350)
 
-    def view_role(self):
+    def view_word(self):
         frame = Frame()
-        Label(frame, text="Role : " + self.role_player,
+        Label(frame, text="Kata : " + self.word_player.get(),
               font=("Arial", 12), justify='left').pack()
         frame.place(x=550, y=10)
 
