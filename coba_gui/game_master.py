@@ -20,6 +20,8 @@ class GUI:
         self.enter_text_widget = None
         self.text_clue = None
         self.join_button = None
+        self.judul = None
+        self.var = StringVar()
         self.view_word()
         self.init_socket()
         self.init_gui()
@@ -158,22 +160,28 @@ class GUI:
 
     def view_voting_box(self):
         frame = Frame()
-        Label(frame, text="Voting", font=("Arial", 15), justify='left').pack()
+        self.judul = Label(frame, text="Voting",
+                           font=("Arial", 15), justify='left')
+        self.judul.pack()
         text = Text(frame, width=10, height=6, cursor="arrow")
         vsb = Scrollbar(frame, command=text.yview)
         text.configure(yscrollcommand=vsb.set)
         text.bind('<KeyPress>', lambda e: 'break')
         text.pack(side='left', pady=15, padx=10)
-        vsb.pack(side='right', fill='y', pady=15)
-        var = IntVar()
+        vsb.pack(side='left', fill='y', pady=15)
         for checkBoxName in self.player_name:
             c = Radiobutton(text, text=checkBoxName,
-                            variable=var, value=checkBoxName)
+                            variable=self.var, value=checkBoxName, command=self.on_choose)
             self.radio_button.append(c)
             text.window_create("end", window=c)
             text.insert("end", "\n")
         text.configure(state="disabled")
+        Button(frame, height=1, width=10, command=self.on_start,
+               text="Pilih").pack(side='bottom')
         frame.place(x=420, y=350)
+
+    def on_choose(self):
+        self.judul.config(text=self.var.get())
 
     def send_chat_box(self):
         frame = Frame()
