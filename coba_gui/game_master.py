@@ -21,7 +21,6 @@ class GUI:
         self.text_clue = None
         self.join_button = None
         self.judul = None
-        self.var = StringVar()
         self.view_word()
         self.init_socket()
         self.init_gui()
@@ -169,9 +168,10 @@ class GUI:
         text.bind('<KeyPress>', lambda e: 'break')
         text.pack(side='left', pady=15, padx=10)
         vsb.pack(side='left', fill='y', pady=15)
+        var = StringVar()
         for checkBoxName in self.player_name:
             c = Radiobutton(text, text=checkBoxName,
-                            variable=self.var, value=checkBoxName, command=self.on_choose)
+                            variable=var, value=checkBoxName, command=self.on_choose)
             self.radio_button.append(c)
             text.window_create("end", window=c)
             text.insert("end", "\n")
