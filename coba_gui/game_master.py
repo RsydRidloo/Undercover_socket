@@ -11,14 +11,16 @@ class GUI:
     def __init__(self, master):
         self.root = master
         self.player_name = []
+        self.radio_button = []
         self.clue_player = ["foo", "bar", "baz", "foo", "bar",
                             "baz", "foo", "bar", "baz", "foo", "bar", "baz"]
         self.chat_transcript = None
         self.text_player = None
-        self.word_player = StringVar()
+        self.word_label = None
         self.enter_text_widget = None
         self.text_clue = None
         self.join_button = None
+        self.view_word()
         self.init_socket()
         self.init_gui()
         self.thread_gui()
@@ -70,14 +72,13 @@ class GUI:
             if message.split("/")[0] == "word":
                 self.chat_transcript.insert(
                     'end', "kata anda adalah " + message.split("/")[1] + '\n')
-                self.word_player.set(message.split("/")[1])
-                self.view_word()
+                word_player = message.split("/")[1]
+                self.word_label.config(text="Kata : " + word_player)
+                self.view_voting_box()
             else:
                 if message.split("/")[0] == "joined":
                     self.player_name.append(message.split("/")[1])
                     message = message.split("/")[1] + " joined"
-                self.view_voting_box.destroy()
-                self.view_voting_box()
                 self.chat_transcript.insert('end', message + '\n')
             self.chat_transcript.yview(END)
         so.close()
@@ -164,8 +165,11 @@ class GUI:
         text.bind('<KeyPress>', lambda e: 'break')
         text.pack(side='left', pady=15, padx=10)
         vsb.pack(side='right', fill='y', pady=15)
+        var = IntVar()
         for checkBoxName in self.player_name:
-            c = Radiobutton(text, text=checkBoxName)
+            c = Radiobutton(text, text=checkBoxName,
+                            variable=var, value=checkBoxName)
+            self.radio_button.append(c)
             text.window_create("end", window=c)
             text.insert("end", "\n")
         text.configure(state="disabled")
@@ -183,9 +187,14 @@ class GUI:
 
     def view_word(self):
         frame = Frame()
-        Label(frame, text="Kata : " + self.word_player.get(),
-              font=("Arial", 12), justify='left').pack()
+        self.word_label = Label(frame, text="Kata : -",
+                                font=("Arial", 12), justify='left')
+        self.word_label.pack()
         frame.place(x=550, y=10)
+
+    def refresh(self):
+        self.destroy()
+        self.__init__()
 
 
 if __name__ == '__main__':
