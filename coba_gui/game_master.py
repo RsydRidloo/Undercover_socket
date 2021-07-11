@@ -20,7 +20,6 @@ class GUI:
         self.enter_text_widget = None
         self.text_clue = None
         self.join_button = None
-        self.judul = None
         self.var = StringVar()
         self.view_word()
         self.init_socket()
@@ -77,6 +76,14 @@ class GUI:
                 word_player = message.split("/")[1]
                 self.word_label.config(text="Kata : " + word_player)
                 self.view_voting_box()
+            elif message.split("/")[0] == "mostVoted":
+                if message.split("/")[1] == self.text_player.get():
+                    break
+                index = self.player_name.index(message.split("/")[1])
+                print(self.player_name[index])
+                self.radio_button[index].configure(state=DISABLED)
+                # for message.split("/")[1] in self.radio_button:
+                #     self.radio_button.index(message.split("/")[1]).configure(state = DISABLED)
             else:
                 if message.split("/")[0] == "joined":
                     self.player_name.append(message.split("/")[1])
@@ -160,9 +167,8 @@ class GUI:
 
     def view_voting_box(self):
         frame = Frame()
-        self.judul = Label(frame, text="Voting",
-                           font=("Arial", 15), justify='left')
-        self.judul.pack()
+        Label(frame, text="Voting",
+              font=("Arial", 15), justify='left').pack()
         text = Text(frame, width=10, height=6, cursor="arrow")
         vsb = Scrollbar(frame, command=text.yview)
         text.configure(yscrollcommand=vsb.set)
@@ -171,17 +177,18 @@ class GUI:
         vsb.pack(side='left', fill='y', pady=15)
         for checkBoxName in self.player_name:
             c = Radiobutton(text, text=checkBoxName,
-                            variable=self.var, value=checkBoxName, command=self.on_choose)
+                            variable=self.var, value=checkBoxName)
             self.radio_button.append(c)
             text.window_create("end", window=c)
             text.insert("end", "\n")
         text.configure(state="disabled")
-        Button(frame, height=1, width=10, command=self.on_start,
+        Button(frame, height=1, width=10, command=self.on_choose,
                text="Pilih").pack(side='bottom')
         frame.place(x=420, y=350)
 
     def on_choose(self):
-        self.judul.config(text=self.var.get())
+        self.server.send(("vote/"+self.var.get()).encode())
+        # self.judul.config(text=self.var.get())
 
     def send_chat_box(self):
         frame = Frame()
