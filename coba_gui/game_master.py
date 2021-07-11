@@ -10,8 +10,7 @@ class GUI:
 
     def __init__(self, master):
         self.root = master
-        self.player_name = ["foo", "bar", "baz", "foo", "bar",
-                            "baz", "foo", "bar", "baz", "foo", "bar", "baz"]
+        self.player_name = []
         self.clue_player = ["foo", "bar", "baz", "foo", "bar",
                             "baz", "foo", "bar", "baz", "foo", "bar", "baz"]
         self.chat_transcript = None
@@ -34,12 +33,11 @@ class GUI:
         self.root.geometry('700x550')
         self.title_game()
         self.input_username()
-        
+        self.view_voting_box()
         self.view_chat_box()
         self.send_chat_box()
         self.input_clue()
         self.view_clue_box()
-        self.view_voting_box()
         self.start_game()
 
     def start_game(self):
@@ -70,10 +68,16 @@ class GUI:
                 break
             message = buffer.decode()
             if message.split("/")[0] == "word":
-                self.chat_transcript.insert('end', "kata anda adalah " + message.split("/")[1] + '\n')
-                self.word_player.set(message.split("/")[1]) 
+                self.chat_transcript.insert(
+                    'end', "kata anda adalah " + message.split("/")[1] + '\n')
+                self.word_player.set(message.split("/")[1])
                 self.view_word()
             else:
+                if message.split("/")[0] == "joined":
+                    self.player_name.append(message.split("/")[1])
+                    message = message.split("/")[1] + " joined"
+                self.view_voting_box.destroy()
+                self.view_voting_box()
                 self.chat_transcript.insert('end', message + '\n')
             self.chat_transcript.yview(END)
         so.close()

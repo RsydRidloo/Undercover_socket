@@ -24,7 +24,7 @@ def clientthread(conn, addr):
                 if data.split("/")[0] == "joined":
                     print(data)
                     name_of_clients.append(data.split("/")[1])
-                    data = data.split("/")[1] + " joined"
+                    # data = data.split("/")[1] + " joined"
                     broadcast(data, conn)
                 elif data.split("/")[0] == "start":
                     number_of_clients = len(name_of_clients)
