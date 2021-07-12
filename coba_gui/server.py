@@ -12,6 +12,7 @@ server.listen(100)
 list_of_clients = []
 name_of_clients = []
 role_of_clients = []
+voted_client = []
 undercover_words = ['fanta', 'singa', 'pecel', 'alfamart', 'sapi']
 civillian_words = ['sprite', 'macan', 'gado-gado', 'indomaret', 'kerbau']
 
@@ -47,6 +48,13 @@ def clientthread(conn, addr):
                         print(word_to_send)
                         clients.send(word_to_send.encode())
                         i = i + 1
+                elif data.split("/")[0] == "vote":
+                    voted_client.append(data.split("/")[1])
+                    if len(name_of_clients) == len(voted_client):
+                        most_voted_client = "mostVoted/" + \
+                            most_frequent(voted_client)
+                        sendToAll(most_voted_client, conn)
+                        voted_client.clear()
                 else:
                     print(data.split("/")[0] + ' : ' + data.partition(' ')[2])
                     message_to_send = data.split(
@@ -58,6 +66,10 @@ def clientthread(conn, addr):
             continue
 
 
+def most_frequent(List):
+    return max(set(List), key=List.count)
+
+
 def broadcast(message, connection):
     for clients in list_of_clients:
         if clients != connection:
@@ -66,6 +78,11 @@ def broadcast(message, connection):
             except:
                 clients.close()
                 remove(clients)
+
+
+def sendToAll(message, connection):
+    for clients in list_of_clients:
+        clients.send(message.encode())
 
 
 def remove(connection):
