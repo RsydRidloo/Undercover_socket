@@ -20,6 +20,7 @@ class GUI:
         self.enter_text_widget = None
         self.text_clue = None
         self.join_button = None
+        self.start_button = None
         self.var = StringVar()
         self.view_word()
         self.init_socket()
@@ -45,8 +46,9 @@ class GUI:
 
     def start_game(self):
         frame = Frame()
-        Button(frame, height=1, width=10, command=self.on_start,
-               text="Start").pack(side='left')
+        self.start_button = Button(frame, height=1, width=10, command=self.on_start,
+                                   text="Start")
+        self.start_button.pack(side='left')
         frame.place(x=10, y=70)
 
     def thread_gui(self):
@@ -98,12 +100,13 @@ class GUI:
         if len(self.text_player.get()) == 0:
             return
         self.text_player.config(state='disabled')
+        self.join_button.config(state='disabled')
         self.server.send(("joined/" + self.text_player.get()).encode())
 
     def on_start(self):
         if len(self.text_player.get()) == 0:
             return
-        self.text_player.config(state='disabled')
+        self.start_button.config(state='disabled')
         self.server.send(("start/" + self.text_player.get()).encode())
 
     def on_enter_chat(self, event):
@@ -126,7 +129,8 @@ class GUI:
         self.text_player = Entry(frame, borderwidth=1, width=28)
         self.text_player.pack(side='left', padx=2)
         self.join_button = Button(
-            frame, height=1, width=10, command=self.on_join, text="Join").pack(side='left', padx=2)
+            frame, height=1, width=10, command=self.on_join, text="Join")
+        self.join_button.pack(side='left', padx=2)
         frame.place(x=200, y=70)
 
     def view_chat_box(self):
