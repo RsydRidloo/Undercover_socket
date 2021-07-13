@@ -2,6 +2,7 @@ import socket
 import threading
 import numpy
 import random
+import time
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -48,6 +49,11 @@ def clientthread(conn, addr):
                         print(word_to_send)
                         clients.send(word_to_send.encode())
                         i = i + 1
+                    for name in name_of_clients:
+                        sendToAll(name, conn)
+                        if data.split("/")[0] == "clue":
+                            sendToAll(data.split("/")[1], conn)
+
                 elif data.split("/")[0] == "vote":
                     voted_client.append(data.split("/")[1])
                     if len(name_of_clients) == len(voted_client):
@@ -64,6 +70,7 @@ def clientthread(conn, addr):
                 remove(conn)
         except:
             continue
+
 
 
 def most_frequent(List):
