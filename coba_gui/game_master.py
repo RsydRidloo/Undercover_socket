@@ -78,7 +78,9 @@ class GUI:
                 self.view_voting_box()
             elif message.split("/")[0] == "mostVoted":
                 if message.split("/")[1] == self.text_player.get():
-                    break
+                    self.chat_transcript.insert(
+                        'end', "Anda telah divote dan dikeluarkan dari game" + '\n')
+                    root.after(5000, root.destroy)
                 index = self.player_name.index(message.split("/")[1])
                 print(self.player_name[index])
                 self.radio_button[index].configure(state=DISABLED)
