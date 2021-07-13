@@ -12,8 +12,8 @@ class GUI:
         self.root = master
         self.player_name = []
         self.radio_button = []
-        self.clue_player = ["foo", "bar", "baz", "foo", "bar",
-                            "baz", "foo", "bar", "baz", "foo", "bar", "baz"]
+        self.clue_player = []
+        self.clue_box = None
         self.chat_transcript = None
         self.text_player = None
         self.word_label = None
@@ -66,6 +66,18 @@ class GUI:
         self.enter_text_widget.delete(1.0, 'end')
         return 'break'
 
+    def send_clue(self):
+        sender_name = self.text_player.get()
+        data = self.enter_text_widget.get(1.0, 'end').strip()
+        message = ('clue/' + sender_name + ':' + data).encode()
+        self.clue_player.append("me : " + data)
+        for listbox in self.clue_player:
+            self.clue_box.insert(END, listbox)
+        self.clue_box.yview(END)
+        self.server.send(message)
+        self.enter_text_widget.delete(1.0, 'end')
+        return 'break'
+
     def recv_msg(self, so):
         while True:
             buffer = so.recv(2048)
@@ -78,6 +90,9 @@ class GUI:
                 word_player = message.split("/")[1]
                 self.word_label.config(text="Kata : " + word_player)
                 self.view_voting_box()
+            elif message.split("/")[0] == "clue_turn":
+                if message.split("/")[1] == self.text_player.get():
+                    self.text_clue.config(state="normal")
             elif message.split("/")[0] == "mostVoted":
                 if message.split("/")[1] == self.text_player.get():
                     self.chat_transcript.insert(
@@ -88,6 +103,10 @@ class GUI:
                 self.radio_button[index].configure(state=DISABLED)
                 # for message.split("/")[1] in self.radio_button:
                 #     self.radio_button.index(message.split("/")[1]).configure(state = DISABLED)
+            elif message.split("/")[0] == "clue_send":
+                self.clue_player.append(message.split("/")[1])
+                for listbox in self.clue_player:
+                    self.clue_box.insert(END, listbox)
             else:
                 if message.split("/")[0] == "joined":
                     self.player_name.append(message.split("/")[1])
@@ -113,6 +132,12 @@ class GUI:
         if len(self.text_player.get()) == 0:
             return
         self.send_msg()
+        self.clear_text()
+
+    def on_enter_clue(self, event):
+        if len(self.text_player.get()) == 0:
+            return
+        self.send_clue()
         self.clear_text()
 
     def clear_text(self):
@@ -151,14 +176,14 @@ class GUI:
         frame = Frame()
         Label(frame, text="Clue Box", font=(
             "Arial", 15), justify='left').pack(pady=5)
-        Lb = Listbox(frame, width=10, height=10)
+        self.clue_box = Listbox(frame, width=10, height=10)
         Sb = Scrollbar(frame, orient="vertical")
         for listbox in self.clue_player:
-            Lb.insert(END, listbox)
-        Lb.config(yscrollcommand=Sb.set)
-        Sb.config(command=Lb.yview)
-        Lb.bind('<KeyPress>', lambda e: 'break')
-        Lb.pack(side='left', padx=10)
+            self.clue_box.insert(END, listbox)
+        self.clue_box.config(yscrollcommand=Sb.set)
+        Sb.config(command=self.clue_box.yview)
+        self.clue_box.bind('<KeyPress>', lambda e: 'break')
+        self.clue_box.pack(side='left', padx=10)
         Sb.pack(side='right', fill='y')
         frame.place(x=420, y=120)
 
@@ -166,9 +191,9 @@ class GUI:
         frame = Frame()
         Label(frame, text="Input Clue :", font=(
             "Arial", 15), justify='left').pack(pady=5)
-        self.text_clue = Text(frame, width=10, height=1, font=("Serif", 12))
+        self.text_clue = Text(frame, width=10, height=1, state="disabled", font=("Serif", 12))
         self.text_clue.pack()
-        self.enter_text_widget.bind('<Return>', self.on_enter_chat)
+        self.enter_text_widget.bind('<Return>', self.on_enter_clue)
         frame.place(x=550, y=120)
 
     def view_voting_box(self):

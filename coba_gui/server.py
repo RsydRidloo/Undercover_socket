@@ -50,9 +50,9 @@ def clientthread(conn, addr):
                         clients.send(word_to_send.encode())
                         i = i + 1
                     for name in name_of_clients:
-                        sendToAll(name, conn)
-                        if data.split("/")[0] == "clue":
-                            sendToAll(data.split("/")[1], conn)
+                        name_to_send = "clue_turn/" + name
+                        sendToAll(name_to_send, conn)
+                        waitUntil(data.split("/")[0] == "clue", broadcast("clue_send/" + data.split("/")[1], conn))
 
                 elif data.split("/")[0] == "vote":
                     voted_client.append(data.split("/")[1])
@@ -62,7 +62,7 @@ def clientthread(conn, addr):
                         sendToAll(most_voted_client, conn)
                         voted_client.clear()
                 else:
-                    print(data.split("/")[0] + ' : ' + data.partition(' ')[2])
+                    # print(data.split("/")[0] + ' : ' + data.partition('/')[2])
                     message_to_send = data.split(
                         "/")[0] + ' : ' + data.partition('/')[2]
                     broadcast(message_to_send, conn)
@@ -71,7 +71,14 @@ def clientthread(conn, addr):
         except:
             continue
 
-
+def waitUntil(condition, output): #defines function
+    wU = True
+    while wU == True:
+        print(condition)
+        if condition: #checks the condition
+            output
+            wU = False
+        time.sleep(1) #waits 60s for preformance
 
 def most_frequent(List):
     return max(set(List), key=List.count)
