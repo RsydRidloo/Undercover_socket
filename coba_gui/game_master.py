@@ -86,7 +86,7 @@ class GUI:
         self.guide_word = Label(frame, text="", font=(
             "Arial", 10), justify='left')
         self.guide_word.pack()
-        frame.place(x=500, y=70)
+        frame.place(x=450, y=70)
 
     def recv_msg(self, so):
         while True:
@@ -130,11 +130,11 @@ class GUI:
                 self.guide_word.config(text="Silahkan melakukan voting...")
                 self.vote_button.config(state="normal")
             elif message.split("/")[0] == "civillian_win":
-                self.guide_word.config(text="Permainan telah berakhir dengan Civillian sebagai pemenang" + '\n' + "Anda akan keluar otomatis dalam 5 detik")
-                root.after(5000, root.destroy)
+                self.guide_word.config(text="Permainan telah berakhir \npemenangnya adalah CIVILIAN")
+                # root.after(5000, root.destroy)
             elif message.split("/")[0] == "undercover_win":
-                self.guide_word.config(text="Permainan telah berakhir dengan Undercover sebagai pemenang" + '\n' + "Anda akan keluar otomatis dalam 5 detik")
-                root.after(5000, root.destroy)
+                self.guide_word.config(text="Permainan telah berakhir \npemenangnya adalah UNDERCOVER")
+                # root.after(5000, root.destroy)
             else:
                 if message.split("/")[0] == "joined":
                     self.player_name.append(message.split("/")[1])
@@ -187,7 +187,7 @@ class GUI:
         self.join_button = Button(
             frame, height=1, width=10, command=self.on_join, text="Join")
         self.join_button.pack(side='left', padx=2)
-        frame.place(x=200, y=70)
+        frame.place(x=180, y=70)
 
     def view_chat_box(self):
         frame = Frame()
@@ -249,6 +249,7 @@ class GUI:
 
     def on_choose(self):
         self.server.send(("vote/"+self.var.get()).encode())
+        self.vote_button.config(state='disabled')
         # self.judul.config(text=self.var.get())
 
     def send_chat_box(self):

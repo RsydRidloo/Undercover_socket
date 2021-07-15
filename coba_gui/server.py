@@ -15,16 +15,26 @@ name_of_clients = []
 remaining_clients = []
 role_of_clients = []
 voted_client = []
+remaining_roles = []
 undercover_words = ['fanta', 'singa', 'pecel', 'alfamart', 'sapi']
 civillian_words = ['sprite', 'macan', 'gado-gado', 'indomaret', 'kerbau']
 turn = 0
 i = 0
+x = 0
+y = 0
+idx = 0
+old_remaining_client = 0
 
 def clientthread(conn, addr):
     global turn
     global role_of_clients
     global remaining_clients
+    global remaining_roles
     global i
+    global x
+    global y
+    global idx
+    global old_remaining_client
     while True:
         try:
             data = conn.recv(2048).decode()
@@ -38,48 +48,62 @@ def clientthread(conn, addr):
                 elif data.split("/")[0] == "start":
                     remaining_clients = name_of_clients.copy()
                     number_of_clients = len(name_of_clients)
-                    index = random.randint(0, 4)
+                    if x == 0:
+                        index = random.randint(0, 4)
+                        x=1
                     if number_of_clients > 5:
                         role_of_clients = numpy.ones(number_of_clients)
-                        role_of_clients[(number_of_clients-2):] = 0
-                        random.shuffle(role_of_clients)
-                    else:
-                        role_of_clients = numpy.ones(number_of_clients)
-                        role_of_clients[(number_of_clients-1):] = 0
+                        role_of_clients[(number_of_clients-2):] = 2
                         random.shuffle(role_of_clients)
                         print(role_of_clients)
+                    else:
+                        role_of_clients = numpy.ones(number_of_clients)
+                        role_of_clients[(number_of_clients-1):] = 2
+                        random.shuffle(role_of_clients)
+                        print(role_of_clients)
+                    remaining_roles = role_of_clients.copy()
                     for clients in list_of_clients:
-                        if role_of_clients[i] == 0:
+                        print(clients)
+                        if role_of_clients[i] == 2:
                             word_to_send = "word/" + undercover_words[index]
                         else:
                             word_to_send = "word/" + civillian_words[index]
                         print(word_to_send)
                         clients.send(word_to_send.encode())
                         i = i + 1
-                    sendToAll("clue_turn/" + name_of_clients[0], conn)
+                    sendToAll("clue_turn/" + remaining_clients[0], conn)
+                    # print(name_of_clients[0])
                 elif data.split("/")[0] == "clue":
+                    if y == 0:                        
+                        amount_of_client = len(remaining_clients)
+                    else:
+                        amount_of_client = old_remaining_client
                     turn += 1
-                    amount_of_client = len(name_of_clients)
+                    idx += 1
+                    print(turn)
                     broadcast("clue_send/" + data.split("/")[1], conn)
-                    if turn%amount_of_client == 0:
+                    if turn - amount_of_client == 0:
+                        y = 1
+                        idx = 0
                         sendToAll("discussion/", conn)
                         time.sleep(10)
                         sendToAll("vote_time/", conn)
                     else:
-                        sendToAll("clue_turn/" + name_of_clients[turn%amount_of_client], conn)
+                        sendToAll("clue_turn/" + remaining_clients[idx], conn)
                 elif data.split("/")[0] == "vote":
                     voted_client.append(data.split("/")[1])
                     print(voted_client)
-                    print(len(name_of_clients))
+                    print(len(remaining_clients))
                     print(len(voted_client))
-                    if len(name_of_clients) == len(voted_client):
+                    if len(remaining_clients) == len(voted_client):
                         name = most_frequent(voted_client)
+                        old_remaining_client = len(remaining_clients) + len(remaining_clients) - 1
+                        index = name_of_clients.index(name)
                         remaining_clients.remove(name)
                         print(name)
-                        index = name_of_clients.index(name)
                         print(index)
                         print(role_of_clients)
-                        if(role_of_clients[index] == 0):
+                        if(remaining_roles[index] == 2):
                             role = "undercover"
                         else:
                             role = "civillian"
@@ -87,21 +111,27 @@ def clientthread(conn, addr):
                         most_voted_client = "mostVoted/" + role + "/" + name
                         print(most_voted_client)
                         sendToAll(most_voted_client, conn)
+                        if len(remaining_clients)<3:
+                            print("test1")
+                            if 2 not in role_of_clients:
+                                sendToAll("civillian_win/", conn)
+                                print("civillian_win")
+                            else:
+                                sendToAll("undercover_win/", conn)
+                                print("undercover_win")
+                            break
+                        if 2 not in role_of_clients:
+                            sendToAll("civillian_win/", conn)
+                            print("civillian_win")
+                            break
+                        # del remaining_roles[index]
                         voted_client.clear()
-                        sendToAll("clue_turn/" + name_of_clients[0], conn)
+                        sendToAll("clue_turn/" + remaining_clients[0], conn)
                 else:
                     # print(data.split("/")[0] + ' : ' + data.partition('/')[2])
                     message_to_send = data.split(
                         "/")[0] + ' : ' + data.partition('/')[2]
                     broadcast(message_to_send, conn)
-            elif len(remaining_clients)<3:
-                print("test1")
-                if 0 not in role_of_clients:
-                    sendToAll("undercover_win/", conn)
-                    print("undercover_win")
-                else:
-                    sendToAll("civillian_win/", conn)
-                    print("civillian_win")
             else:
                 remove(conn)
         except:
