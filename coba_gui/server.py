@@ -15,7 +15,6 @@ name_of_clients = []
 remaining_clients = []
 role_of_clients = []
 voted_client = []
-remaining_roles = []
 undercover_words = ['fanta', 'singa', 'pecel', 'alfamart', 'sapi']
 civillian_words = ['sprite', 'macan', 'gado-gado', 'indomaret', 'kerbau']
 turn = 0
@@ -29,7 +28,6 @@ def clientthread(conn, addr):
     global turn
     global role_of_clients
     global remaining_clients
-    global remaining_roles
     global i
     global x
     global y
@@ -61,7 +59,7 @@ def clientthread(conn, addr):
                         role_of_clients[(number_of_clients-1):] = 2
                         random.shuffle(role_of_clients)
                         print(role_of_clients)
-                    remaining_roles = role_of_clients.copy()
+                    role_of_clients = role_of_clients.tolist()
                     for clients in list_of_clients:
                         print(clients)
                         if role_of_clients[i] == 2:
@@ -103,11 +101,15 @@ def clientthread(conn, addr):
                         print(name)
                         print(index)
                         print(role_of_clients)
-                        if(remaining_roles[index] == 2):
+                        print(type(remaining_clients))
+                        print(type(role_of_clients))
+                        if(role_of_clients[index] == 2):
                             role = "undercover"
                         else:
                             role = "civillian"
                         print(role)
+                        print(type(role_of_clients))
+                        role_of_clients.pop(index)
                         most_voted_client = "mostVoted/" + role + "/" + name
                         print(most_voted_client)
                         sendToAll(most_voted_client, conn)
