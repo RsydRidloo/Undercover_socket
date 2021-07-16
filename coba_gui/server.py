@@ -20,7 +20,7 @@ civillian_words = ['sprite', 'macan', 'gado-gado', 'indomaret', 'kerbau']
 turn = 0
 i = 0
 x = 0
-y = 0
+y = 1
 idx = 0
 old_remaining_client = 0
 
@@ -72,16 +72,17 @@ def clientthread(conn, addr):
                     sendToAll("clue_turn/" + remaining_clients[0], conn)
                     # print(name_of_clients[0])
                 elif data.split("/")[0] == "clue":
-                    if y == 0:                        
-                        amount_of_client = len(remaining_clients)
-                    else:
-                        amount_of_client = old_remaining_client
+                    # if y == 0:                        
+                    #     amount_of_client = len(remaining_clients)
+                    # else:
+                    #     amount_of_client = old_remaining_client
+                    amount_of_client = clientCounter(len(name_of_clients), y)
                     turn += 1
                     idx += 1
                     print(turn)
                     broadcast("clue_send/" + data.split("/")[1], conn)
                     if turn - amount_of_client == 0:
-                        y = 1
+                        y += 1
                         idx = 0
                         sendToAll("discussion/", conn)
                         time.sleep(10)
@@ -95,7 +96,7 @@ def clientthread(conn, addr):
                     print(len(voted_client))
                     if len(remaining_clients) == len(voted_client):
                         name = most_frequent(voted_client)
-                        old_remaining_client = len(remaining_clients) + len(remaining_clients) - 1
+                        # old_remaining_client = len(remaining_clients) + len(remaining_clients) - 1
                         index = name_of_clients.index(name)
                         remaining_clients.remove(name)
                         print(name)
@@ -138,6 +139,10 @@ def clientthread(conn, addr):
                 remove(conn)
         except:
             continue
+
+def clientCounter(client, index) :
+    result = client + (index-1)*(client-1) + ((index-1)*(index-2)*(-1))/2
+    return result
 
 def waitUntil(condition, output): #defines function
     wU = True
