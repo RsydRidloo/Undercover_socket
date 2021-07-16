@@ -72,7 +72,7 @@ class GUI:
         sender_name = self.text_player.get()
         data = self.text_clue.get(1.0, 'end').strip()
         message = ('clue/' + sender_name + ' : ' + data).encode()
-        print(message)
+        # print(message)
         self.clue_box.insert(END, "me : " + data)
         self.clue_box.yview(END)
         self.server.send(message)
@@ -94,7 +94,7 @@ class GUI:
             if not buffer:
                 break
             message = buffer.decode()
-            print(message)
+            # print(message)
             if message.split("/")[0] == "word":
                 self.chat_transcript.insert(
                     'end', "kata anda adalah " + message.split("/")[1] + '\n')
@@ -108,9 +108,9 @@ class GUI:
             elif message.split("/")[0] == "discussion":
                 self.guide_word.config(text="Silahkan berdiskusi selama 10 detik...")
             elif message.split("/")[0] == "mostVoted":
-                print(message)
+                # print(message)
                 role = message.split("/")[1]
-                print(role)
+                # print(role)
                 if message.split("/")[2] == self.text_player.get():
                     self.chat_transcript.insert(
                         'end', "Anda telah divote dan dikeluarkan dari game" + '\n' + "Role anda adalah " + role + '\n' + "Anda akan keluar otomatis dalam 5 detik" + '\n')
@@ -119,7 +119,7 @@ class GUI:
                 else:
                     self.guide_word.config(text=message.split("/")[2] + " telah divote dan dia adalah " + role )
                 index = self.player_name.index(message.split("/")[2])
-                print(self.player_name[index])
+                # print(self.player_name[index])
                 self.radio_button[index].configure(state=DISABLED)
                 self.vote_button.config(state="disabled")
                 # for message.split("/")[1] in self.radio_button:

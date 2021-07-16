@@ -19,6 +19,8 @@ class GUI:
         self.enter_text_widget = None
         self.text_clue = None
         self.join_button = None
+        self.vote_button = None
+        self.guide_word = StringVar()
         self.var = StringVar()
         self.view_word()
         self.init_socket()
@@ -35,6 +37,7 @@ class GUI:
         self.root.geometry('700x550')
         self.title_game()
         self.input_username()
+        self.guide()
         self.view_voting_box()
         self.view_chat_box()
         self.send_chat_box()
@@ -60,13 +63,21 @@ class GUI:
         sender_name = self.text_player.get()
         data = self.text_clue.get(1.0, 'end').strip()
         message = ('clue/' + sender_name + ' : ' + data).encode()
-        print(message)
+        # print(message)
         self.clue_box.insert(END, "me : " + data)
         self.clue_box.yview(END)
         self.server.send(message)
         self.text_clue.delete(1.0, 'end')
         self.text_clue.config(state="disabled")
+        self.guide_word.config(text="")
         return 'break'
+
+    def guide(self):
+        frame = Frame()
+        self.guide_word = Label(frame, text="", font=(
+            "Arial", 10), justify='left')
+        self.guide_word.pack()
+        frame.place(x=450, y=70)
 
     def recv_msg(self, so):
         while True:
@@ -74,6 +85,7 @@ class GUI:
             if not buffer:
                 break
             message = buffer.decode()
+            # print(message)
             if message.split("/")[0] == "word":
                 self.chat_transcript.insert(
                     'end', "kata anda adalah " + message.split("/")[1] + '\n')
@@ -83,18 +95,37 @@ class GUI:
             elif message.split("/")[0] == "clue_turn":
                 if message.split("/")[1] == self.text_player.get():
                     self.text_clue.config(state="normal")
+                    self.guide_word.config(text="Silahkan mengisi clue dan menekan enter...")
+            elif message.split("/")[0] == "discussion":
+                self.guide_word.config(text="Silahkan berdiskusi selama 10 detik...")
             elif message.split("/")[0] == "mostVoted":
-                if message.split("/")[1] == self.text_player.get():
+                # print(message)
+                role = message.split("/")[1]
+                # print(role)
+                if message.split("/")[2] == self.text_player.get():
                     self.chat_transcript.insert(
-                        'end', "Anda telah divote dan dikeluarkan dari game" + '\n')
+                        'end', "Anda telah divote dan dikeluarkan dari game" + '\n' + "Role anda adalah " + role + '\n' + "Anda akan keluar otomatis dalam 5 detik" + '\n')
+                    self.chat_transcript.config(state="disabled")
                     root.after(5000, root.destroy)
-                index = self.player_name.index(message.split("/")[1])
-                print(self.player_name[index])
+                else:
+                    self.guide_word.config(text=message.split("/")[2] + " telah divote dan dia adalah " + role )
+                index = self.player_name.index(message.split("/")[2])
+                # print(self.player_name[index])
                 self.radio_button[index].configure(state=DISABLED)
+                self.vote_button.config(state="disabled")
                 # for message.split("/")[1] in self.radio_button:
                 #     self.radio_button.index(message.split("/")[1]).configure(state = DISABLED)
             elif message.split("/")[0] == "clue_send":
                 self.clue_box.insert(END, message.split("/")[1])
+            elif message.split("/")[0] == "vote_time":
+                self.guide_word.config(text="Silahkan melakukan voting...")
+                self.vote_button.config(state="normal")
+            elif message.split("/")[0] == "civillian_win":
+                self.guide_word.config(text="Permainan telah berakhir \npemenangnya adalah CIVILIAN")
+                # root.after(5000, root.destroy)
+            elif message.split("/")[0] == "undercover_win":
+                self.guide_word.config(text="Permainan telah berakhir \npemenangnya adalah UNDERCOVER")
+                # root.after(5000, root.destroy)
             else:
                 if message.split("/")[0] == "joined":
                     self.player_name.append(message.split("/")[1])
@@ -141,7 +172,7 @@ class GUI:
         self.join_button = Button(
             frame, height=1, width=10, command=self.on_join, text="Join")
         self.join_button.pack(side='left', padx=2)
-        frame.place(x=200, y=70)
+        frame.place(x=180, y=70)
 
     def view_chat_box(self):
         frame = Frame()
@@ -196,12 +227,14 @@ class GUI:
             text.window_create("end", window=c)
             text.insert("end", "\n")
         text.configure(state="disabled")
-        Button(frame, height=1, width=10, command=self.on_choose,
-               text="Pilih").pack(side='bottom')
+        self.vote_button = Button(frame, height=1, width=10, state="disabled", command=self.on_choose,
+               text="Pilih")
+        self.vote_button.pack(side='bottom')
         frame.place(x=420, y=350)
 
     def on_choose(self):
         self.server.send(("vote/"+self.var.get()).encode())
+        self.vote_button.config(state='disabled')
         # self.judul.config(text=self.var.get())
 
     def send_chat_box(self):
